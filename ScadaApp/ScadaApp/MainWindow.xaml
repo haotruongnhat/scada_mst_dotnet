@@ -25,12 +25,15 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5*" />
 
             </Grid.ColumnDefinitions>
             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 10 0">PLC IP:</TextBlock>
             <TextBox Grid.Column="1" Name="PlcAddress" Text="10.10.1.5"/>
-
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 10 0">Status:</TextBlock>
+            <TextBlock Name="StatusText" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Left">Not Connected</TextBlock>
         </Grid>
         <Grid Grid.Row="2">
             <Canvas>
@@ -52,13 +55,6 @@
                 Canvas.Left="643"
                 Canvas.Top="200"/>
 
-                    <Ellipse
-                Width="20"
-                Height="20"
-                Fill="Yellow"                
-                Canvas.Left="552"
-                Canvas.Top="-15"/>
-
                     <!--Conveyor-->
                     <Rectangle
                 Width="300"
@@ -68,12 +64,20 @@
                 Canvas.Top="225"/>
 
                     <!--Water Bottle-->
-                    <Rectangle
-                Width="100"
-                Height="148"
-                Fill="DeepSkyBlue" 
-                Canvas.Left="564"
-                Canvas.Top="11"/>
+                    <ProgressBar Name="Tank2"
+                  Value="25"
+                     materialDesign:TransitionAssist.DisableTransitions="True"
+                  Height="110"
+                     Width="148" Canvas.Left="545" Canvas.Top="30" RenderTransformOrigin="0.5,0.5">
+                        <ProgressBar.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </ProgressBar.RenderTransform>
+                    </ProgressBar>
                     <Rectangle
                 Width="14"
                 Height="30"
@@ -106,7 +110,7 @@
                     Canvas.Left="386"
                     Canvas.Top="250"/>-->
 
-                    <TextBlock Canvas.Left="521" Canvas.Top="-12" Text="4M1"/>
+                    <TextBlock Canvas.Left="514" Canvas.Top="-6" Text="4M1"/>
                     <TextBlock Canvas.Left="525" Canvas.Top="203"><Run Text="4B5"/></TextBlock>
                     <TextBlock Canvas.Left="668" Canvas.Top="200"><Run Text="4B6"/></TextBlock>
 
@@ -117,6 +121,21 @@
                     Fill="DeepSkyBlue" 
                     Canvas.Left="344"
                     Canvas.Top="14"/>
+
+                    <Slider Name="PumpSlider"
+                      Minimum="0"
+                      Maximum="10"
+                      Value="0" Width="109" Canvas.Left="434" Canvas.Top="64" RenderTransformOrigin="0.5,0.5" Height="24" >
+                        <Slider.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Slider.RenderTransform>
+                    </Slider>
+
                     <TextBlock Canvas.Left="364" Canvas.Top="14"><Run Text="Tank B401"/></TextBlock>
                     <Ellipse  Name="I_4B2"
                     Width="20"
@@ -142,34 +161,22 @@
                     <TextBlock Canvas.Left="652" Canvas.Top="164" Text="4M2"/>
                     <TextBlock Canvas.Left="411" Canvas.Top="250" Text="4M3"/>
 
-                    <Button
+                    <Button Name="EmergencyStopButton"
                       Style="{StaticResource MaterialDesignFloatingActionButton}"
+                      Background="Red"
                       ToolTip="MaterialDesignFloatingActionLightButton"
-                      IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}" Canvas.Left="146" Canvas.Top="89">
+                      IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}" Canvas.Left="147" Canvas.Top="145">
 
                     </Button>
-                    <TextBlock Canvas.Left="120" Canvas.Top="150" Text="EMERGENCY STOP"/>
-
-                    <Button
-                      Style="{StaticResource MaterialDesignFloatingActionButton}"
-                      ToolTip="MaterialDesignFloatingActionLightButton"
-                      IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}" Canvas.Left="154" Canvas.Top="188" Height="38" Width="38">
-
-                    </Button>
-                    <TextBlock Canvas.Left="154" Canvas.Top="226" Text="START"/>
-                    <Button
-                    Style="{StaticResource MaterialDesignFloatingActionButton}"
-                    ToolTip="MaterialDesignFloatingActionLightButton"
-                    IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" Canvas.Left="154" Canvas.Top="254" Height="38" Width="38"/>
-                    <TextBlock Canvas.Left="160" Canvas.Top="292" Text="STOP"/>
+                    <TextBlock Canvas.Left="121" Canvas.Top="206" Text="EMERGENCY STOP"/>
 
                     <Button Name="ConnectButton"
                     Style="{StaticResource MaterialDesignFloatingActionButton}"
-                    Background="Red"
+                    Background="Yellow"
                     ToolTip="MaterialDesignFloatingActionLightButton"
                     IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
-                    Canvas.Left="154" Canvas.Top="5" Height="38" Width="38"/>
-                    <TextBlock Canvas.Left="143" Canvas.Top="48" Text="CONNECT"/>
+                    Canvas.Left="155" Canvas.Top="61" Height="38" Width="38"/>
+                    <TextBlock Canvas.Left="144" Canvas.Top="104" Text="CONNECT"/>
                     <Button Name="SeperatorButton"
                           Style="{StaticResource MaterialDesignRaisedLightButton}"
                           ToolTip="Resource name: MaterialDesignRaisedLightButton"
@@ -193,6 +200,53 @@
                         Canvas.Left="367"
                         Canvas.Top="286"/>
                     <TextBlock Canvas.Left="392" Canvas.Top="286" Text="4B4"/>
+                    <Button x:Name="PumpButton"
+                        Style="{StaticResource MaterialDesignFloatingActionButton}"
+                        ToolTip="MaterialDesignFloatingActionLightButton"
+                        IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
+                        Background="Yellow"
+                        Canvas.Left="540" Canvas.Top="-6" 
+                        Width="20"
+                        Height="20"/>
+                    <Rectangle
+                        Width="40"
+                        Height="8"
+                        Fill="DeepSkyBlue" 
+                        Canvas.Left="444"
+                        Canvas.Top="145"/>
+                    <Rectangle
+                        Width="7"
+                        Height="23"
+                        Fill="DeepSkyBlue" 
+                        Canvas.Left="484"
+                        Canvas.Top="130"/>
+                    <Rectangle
+                        Width="7"
+                        Height="31"
+                        Fill="DeepSkyBlue" 
+                        Canvas.Left="485"
+                        Canvas.Top="-9"/>
+                    <Rectangle
+                        Width="7"
+                        Height="121"
+                        Fill="DeepSkyBlue" 
+                        Canvas.Left="542"
+                        Canvas.Top="-73" RenderTransformOrigin="0.5,0.5">
+                        <Rectangle.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle
+                        Width="7"
+                        Height="20"
+                        Fill="DeepSkyBlue" 
+                        Canvas.Left="599"
+                        Canvas.Top="-9"/>
 
                 </Canvas>
             </Canvas>

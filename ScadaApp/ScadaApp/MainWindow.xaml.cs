@@ -28,11 +28,18 @@ namespace ScadaApp
         PlcHandler handler;
         bool isConnected = false;
 
+        bool PumpState = false;
+        double PumpValue = 0;
         bool ConveyorState = false;
         bool SeperatorState = false;
         bool BottlingState = false;
 
-        string SeperatorTriggerAddress = "M0.0";
+        string PumpTriggerAddress = "Q0.0";
+        string BottlingTriggerAddress = "Q0.1";
+        string ConveyorTriggerAddress = "Q0.2";
+        string SeperatorTriggerAddress = "Q0.3";
+
+        string StatusMessage = "Standby";
 
         public MainWindow()
         {
@@ -40,9 +47,12 @@ namespace ScadaApp
 
             // Get ip address
             ConnectButton.Click += ConnectButtonClicked;
-            ConveyorButton.Click += ConveyorButtonClicked;
+            PumpButton.Click += PumpButtonClicked;
             SeperatorButton.Click += SeperatorButtonClicked;
             BottlingButton.Click += BottlingButtonClicked;
+            ConveyorButton.Click += ConveyorButtonClicked;
+            PumpSlider.ValueChanged += PumpValueChanged;
+            EmergencyStopButton.Click += EmergencyStopButtonClicked;
 
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
@@ -55,8 +65,17 @@ namespace ScadaApp
             if (!isConnected)
             {
                 string address = PlcAddress.Text;
-                handler = new PlcHandler(address, false);
-                isConnected = handler.isConnected;
+                try
+                {
+                    handler = new PlcHandler(address, false);
+                    isConnected = handler.isConnected;
+                    StatusMessage = "Connected";
+                }
+                catch
+                {
+                    StatusMessage = "Cannot Connect";
+                }
+
             }
             else
             {
@@ -65,11 +84,38 @@ namespace ScadaApp
             }
         }
 
+        public void EmergencyStopButtonClicked(object sender, RoutedEventArgs e)
+        {
+            if (isConnected)
+            {
+                handler.WriteState(PumpTriggerAddress, false);
+                PumpState = false;
+                handler.WriteState(ConveyorTriggerAddress, false);
+                PumpState = false;
+                handler.WriteState(SeperatorTriggerAddress, false);
+                PumpState = false;
+                handler.WriteState(BottlingTriggerAddress, false);
+                PumpState = false;
+
+                PumpSlider.Value = 0;
+                handler.WriteDB(100, 4, 0);
+            }
+        }
+
+        public void PumpButtonClicked(object sender, RoutedEventArgs e)
+        {
+            if (isConnected)
+            {
+                handler.WriteState(PumpTriggerAddress, !PumpState);
+                PumpState = !PumpState;
+            }
+        }
+
         public void ConveyorButtonClicked(object sender, RoutedEventArgs e)
         {
             if (isConnected)
             {
-                handler.WriteState("Q0.2", !ConveyorState);
+                handler.WriteState(ConveyorTriggerAddress, !ConveyorState);
                 ConveyorState = !ConveyorState;
             }
         }
@@ -87,10 +133,40 @@ namespace ScadaApp
         {
             if (isConnected)
             {
+                if(!BottlingState) { 
+                    string sMessageBoxText = "Will activate bottling - WATER LEAKED WARNING. Continue?";
+                    string sCaption = "Warning";
 
+                    MessageBoxButton btnMessageBox = MessageBoxButton.YesNo;
+                    MessageBoxImage icnMessageBox = MessageBoxImage.Warning;
 
+                    MessageBoxResult rsltMessageBox = MessageBox.Show(sMessageBoxText, sCaption, btnMessageBox, icnMessageBox);
+
+                    switch (rsltMessageBox)
+                    {
+                        case MessageBoxResult.Yes:
+                            BottlingState = !BottlingState;
+                            break;
+
+                        case MessageBoxResult.No:
+                            /* ... */
+                            break;
+                    }
+                }
+                else
+                {
+                    BottlingState = !BottlingState;
+                }
+                handler.WriteState(BottlingTriggerAddress, !BottlingState);
             }
         }
+
+        public void PumpValueChanged(object sender, RoutedEventArgs e)
+        {
+            PumpValue = PumpSlider.Value;
+            handler.WriteDB(100, 4, (float)PumpValue);
+        }
+
         private void OnTimedEvent(object sender, EventArgs e)
         {
 
@@ -105,7 +181,6 @@ namespace ScadaApp
             }
         }
 
-
         public void SetUIState()
         {
             ConnectButton.Background = handler.isConnected ? Brushes.Green : Brushes.Red;
@@ -117,9 +192,21 @@ namespace ScadaApp
             I_4B6.Fill = handler.S_4B6 ? Brushes.Green : Brushes.Red;
             I_4B4.Fill = handler.S_4B4 ? Brushes.Green : Brushes.Red;
 
+            PumpButton.Background = handler.S_4M1 ? Brushes.Green : Brushes.Red;
             ConveyorButton.Background = handler.S_4M3 ? Brushes.Green : Brushes.Red;
             SeperatorButton.Background = handler.S_4M4 ? Brushes.Green : Brushes.Red;
             BottlingButton.Background = handler.S_4M2 ? Brushes.Green : Brushes.Red;
+
+
+            double tank2_UpperBound = 100;
+            double tank2_LowerBound = 0;
+
+            double sensor_UpperBound = 27648;
+            double sensor_LowerBound = 190;
+
+            Tank2.Value = (tank2_UpperBound - tank2_LowerBound)*handler.D_4CO1 / (sensor_UpperBound - sensor_LowerBound);
+
+            StatusText.Text = StatusMessage;
         }
 
         public void ResetState()
@@ -136,7 +223,7 @@ namespace ScadaApp
             ConveyorButton.Background = Brushes.Yellow;
             SeperatorButton.Background = Brushes.Yellow;
             BottlingButton.Background = Brushes.Yellow;
-
+            PumpButton.Background = Brushes.Yellow;
         }
     }
 
@@ -159,6 +246,9 @@ namespace ScadaApp
         public bool S_4M3;
         public bool S_4M4;
 
+        public float D_4CO1 = 0;
+        public float D_4CI1 = 0;
+
         public PlcHandler(string ipAdress, bool test)
         {
             plcIpAddress = ipAdress;
@@ -180,6 +270,9 @@ namespace ScadaApp
         public void PlcInitialization()
         {
             plcInstance = new Plc(CpuType.S7300, plcIpAddress, 0, 2);
+
+            plcInstance.ReadTimeout = 2000;
+            plcInstance.WriteTimeout = 2000;
 
             //Check exception
             plcInstance.Open();
@@ -207,12 +300,19 @@ namespace ScadaApp
                 S_4M2 = (bool)plcInstance.Read("Q0.1");
                 S_4M3 = (bool)plcInstance.Read("Q0.2");
                 S_4M4 = (bool)plcInstance.Read("Q0.3");
+
+                D_4CO1 = (float)plcInstance.Read(DataType.DataBlock, 100, 0, VarType.Real, 1);
             }
         }
 
         public void WriteState(string variable, object value)
         {
             plcInstance.Write(variable, value);
+        }
+
+        public void WriteDB(int db, int startByteAdr, object value)
+        {
+            plcInstance.Write(DataType.DataBlock, db, startByteAdr, value);
         }
     }
 
