@@ -157,7 +157,7 @@ namespace ScadaApp
                 {
                     BottlingState = !BottlingState;
                 }
-                handler.WriteState(BottlingTriggerAddress, !BottlingState);
+                handler.WriteState(BottlingTriggerAddress, BottlingState);
             }
         }
 
