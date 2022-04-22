@@ -1,5 +1,9 @@
 # SCADA Application - Bottling Station - MST VGU
 
+## The interface:
+
+![Application Interface](application.PNG)
+
 ## There are two parts in the repo:
 - S7 Program: `Station4`
 - WPF C# Application: `ScadaApp`
@@ -29,9 +33,6 @@
 - `DB100.DBD4`: Analog output to control motor to pump water into Tank B402 (Control by `Slider`)
 
 
-## The interface:
-
-![Application Interface](application.PNG)
 
 ## Contact:
 - Truong Nhat Hao, MST2021, VGU, haotruongnhat@gmail.com
