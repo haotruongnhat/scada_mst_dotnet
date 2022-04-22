@@ -1,18 +1,18 @@
 # SCADA Application - Bottling Station - MST VGU
 
-There are two parts in the repo:
+## There are two parts in the repo:
 - S7 Program: `Station4`
 - WPF C# Application: `ScadaApp`
 
-First, push `Station4` program into PLC S7-300 Bottling Station (Station 4)
+## Push `Station4` program into PLC S7-300 Bottling Station (Station 4)
 - Start DI/DO address: 0
 - Start AI/AO address: 256
 
-For the WPF application, the requirements would be:
+## For the WPF application, the requirements would be:
 - Visual Studio 2017
 - S7netplus library: https://github.com/S7NetPlus/s7netplus
 
-I/O Mapping between PLC and C# application
+## I/O Mapping between PLC and C# application
 - `I0.0`: level B402 reached (4B1)
 - `I0.1`: tank B401 top (4B2)
 - `I0.2`: tank B401 bottom (4B3)
@@ -29,9 +29,9 @@ I/O Mapping between PLC and C# application
 - `DB100.DBD4`: Analog output to control motor to pump water into Tank B402 (Control by `Slider`)
 
 
-The interface:
+## The interface:
 
-![Alt text](application.png)
+![Application Interface](application.PNG)
 
 ## Contact:
 - Truong Nhat Hao, MST2021, VGU, haotruongnhat@gmail.com
