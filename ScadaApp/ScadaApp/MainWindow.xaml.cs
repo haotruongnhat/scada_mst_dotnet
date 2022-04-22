@@ -17,6 +17,8 @@ using System.Threading;
 using S7.Net;
 using System.Timers;
 using System.Windows.Threading;
+using System.Net.Sockets;
+using System.Net;
 
 namespace ScadaApp
 {
